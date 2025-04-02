@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmar Pedido - RipStoreSc</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #E5E5E5;
+            font-family: 'Poppins', sans-serif;
+        }
+        .checkout-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        .product-list {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+        .product-item {
+            background: #9CA3AF;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .summary-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            position: sticky;
+            top: 1rem;
+        }
+        .payment-method {
+            background: #f3f3f3;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .payment-method:hover {
+            background: #e5e5e5;
+        }
+        .payment-method.selected {
+            background: #000;
+            color: white;
+        }
+        .file-upload {
+            display: none;
+        }
+        .upload-btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #f3f3f3;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        .upload-btn:hover {
+            background: #e5e5e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="checkout-container">
+        <!-- Products Section -->
+        <div class="product-list">
+            <h2 class="text-xl font-semibold mb-4">Confirmar</h2>
+            <div id="productContainer">
+                <!-- Products will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="summary-card">
+            <h3 class="text-lg font-semibold mb-4">Resumen</h3>
+            
+            <!-- Product Summary -->
+            <div id="productSummary" class="mb-4">
+                <!-- Products summary will be dynamically added here -->
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="mb-4">
+                <h4 class="font-medium mb-2">Direccion</h4>
+                <p id="userAddress" class="text-gray-600"></p>
+            </div>
+
+            <!-- Totals -->
+            <div class="border-t pt-4 mb-4">
+                <div class="flex justify-between mb-2">
+                    <span>Total:</span>
+                    <span id="totalAmount">$0.00</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Total En Bs:</span>
+                    <span id="totalBs">Bs. 0,00</span>
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="mb-4">
+                <div class="payment-method" onclick="selectPayment('paypal')">
+                    <span>Pagar Con PayPal + 5,40% + $0.30</span>
+                </div>
+                <div class="payment-method" onclick="selectPayment('pagomovil')">
+                    <span>Pagar Con PagoMovil</span>
+                </div>
+            </div>
+
+            <!-- PagoMovil Details (initially hidden) -->
+            <div id="pagomovilDetails" class="hidden">
+                <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                    <h4 class="font-medium mb-2">Datos de PagoMovil</h4>
+                    <p>Banco: xxxx</p>
+                    <p>Teléfono: xxxx-xxxxxxx</p>
+                    <p>CI: xx.xxx.xxx</p>
+                </div>
+
+                <!-- File Upload -->
+                <div>
+                    <label class="upload-btn">
+                        <input type="file" class="file-upload" accept="image/*" onchange="handleFileUpload(this)">
+                        Adjuntar Comprobante
+                    </label>
+                    <div id="uploadedFiles" class="mt-2 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button id="confirmButton" class="w-full bg-black text-white py-3 rounded-lg mt-4" onclick="confirmOrder()">
+                Confirmar Pedido
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let selectedPayment = '';
+        let uploadedFiles = [];
+
+        // Load cart items and user data when page loads
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadCartItems();
+            await loadUserAddress();
+        });
+
+        async function loadCartItems() {
+            try {
+                const response = await fetch('get_cart.php');
+                const data = await response.json();
+                if (data.success) {
+                    renderProducts(data.items);
+                    updateTotals(data.totals);
+                }
+            } catch (error) {
+                console.error('Error loading cart items:', error);
+            }
+        }
+
+        async function loadUserAddress() {
+            try {
+                const response = await fetch('get_user_address.php');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('userAddress').textContent = 
+                        `${data.address.line1}\n${data.address.line2 || ''}\n${data.address.city}`;
+                }
+            } catch (error) {
+                console.error('Error loading user address:', error);
+            }
+        }
+
+        function selectPayment(method) {
+            selectedPayment = method;
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            const pagomovilDetails = document.getElementById('pagomovilDetails');
+            pagomovilDetails.classList.toggle('hidden', method !== 'pagomovil');
+        }
+
+        function handleFileUpload(input) {
+            const files = Array.from(input.files);
+            uploadedFiles = uploadedFiles.concat(files);
+            
+            const uploadedFilesDiv = document.getElementById('uploadedFiles');
+            uploadedFilesDiv.innerHTML = uploadedFiles
+                .map(file => `<div>${file.name}</div>`)
+                .join('');
+        }
+
+        async function confirmOrder() {
+            if (!selectedPayment) {
+                alert('Por favor seleccione un método de pago');
+                return;
+            }
+
+            if (selectedPayment === 'pagomovil' && uploadedFiles.length === 0) {
+                alert('Por favor adjunte el comprobante de pago');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('payment_method', selectedPayment);
+            
+            if (selectedPayment === 'pagomovil') {
+                uploadedFiles.forEach(file => {
+                    formData.append('payment_proof[]', file);
+                });
+            }
+
+            try {
+                const response = await fetch('process_order.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = 'order_success.html';
+                } else {
+                    alert(data.message || 'Error al procesar el pedido');
+                }
+            } catch (error) {
+                console.error('Error processing order:', error);
+                alert('Error al procesar el pedido');
+            }
+        }
+
+        function renderProducts(items) {
+            const container = document.getElementById('productContainer');
+            const summary = document.getElementById('productSummary');
+            
+            container.innerHTML = items
+                .map(item => `
+                    <div class="product-item">
+                        <span>${item.name}</span>
+                        <span>$${item.price.toFixed(2)}</span>
+                    </div>
+                `)
+                .join('');
+
+            summary.innerHTML = items
+                .map(item => `
+                    <div class="flex justify-between mb-2">
+                        <span>${item.name}</span>
+                        <span>$${item.price.toFixed(2)}</span>
+                    </div>
+                `)
+                .join('');
+        }
+
+        function updateTotals(totals) {
+            document.getElementById('totalAmount').textContent = `$${totals.usd.toFixed(2)}`;
+            document.getElementById('totalBs').textContent = `Bs. ${totals.bs.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>
