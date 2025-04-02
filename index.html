@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RipStoreSc</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #E5E5E5;
+            font-family: 'Poppins', sans-serif;
+        }
+        .nav-link {
+            font-size: 0.95rem;
+            color: #000;
+            padding: 0.5rem;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .nav-link.active {
+            font-size: 2rem;
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            opacity: 0.8;
+        }
+        .search-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin: 1.5rem 0 3rem 0;
+        }
+        .search-bar {
+            background-color: #000;
+            color: white;
+            border-radius: 9999px;
+            width: 450px;
+            padding: 0.5rem 2rem;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+        .search-bar::placeholder {
+            color: white;
+            opacity: 0.9;
+        }
+        .welcome-text {
+            font-family: 'Times New Roman', serif;
+            font-size: 2.25rem;
+            margin: 2rem 0 3.5rem 0;
+            letter-spacing: 0.025em;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            padding: 0 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .product-card {
+            background-color: #9CA3AF;
+            aspect-ratio: 1;
+            border-radius: 0.75rem;
+            transition: transform 0.3s ease;
+        }
+        .product-card:hover {
+            transform: scale(1.02);
+        }
+        .section-title {
+            font-size: 1.35rem;
+            margin-bottom: 1.75rem;
+            margin-left: 2.5rem;
+            font-weight: 400;
+        }
+        .content-section {
+            display: none;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .content-section.active {
+            display: block;
+            opacity: 1;
+        }
+        @media (max-width: 768px) {
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 0 1.5rem;
+                gap: 1rem;
+            }
+            .nav-link {
+                font-size: 0.85rem;
+            }
+            .nav-link.active {
+                font-size: 1.5rem;
+            }
+            .search-bar {
+                width: 90%;
+            }
+            .section-title {
+                margin-left: 1.5rem;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="py-5 px-8 flex justify-between items-center flex-wrap">
+        <div class="flex space-x-12 flex-wrap">
+            <a class="nav-link" onclick="showCategory('mujeres', this)">Mujeres</a>
+            <a class="nav-link" onclick="showCategory('ninos', this)">Niños</a>
+            <a class="nav-link" onclick="showCategory('adolescentes', this)">Adolescentes</a>
+            <a class="nav-link" onclick="showCategory('hombres', this)">Hombres</a>
+            <a class="nav-link" onclick="showCategory('tecnologia', this)">Tecnología</a>
+        </div>
+        
+        <div class="flex items-center space-x-6">
+            <a href="login.html" class="nav-link">Iniciar Sección</a>
+            <a href="register.html" class="nav-link">Registrarse</a>
+            <a href="cart.html" class="nav-link" id="cartLink">Carrito <span id="cartCount" class="bg-black text-white px-2 py-1 rounded-full text-xs ml-1">0</span></a>
+        </div>
+    </nav>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" placeholder="Buscar" class="search-bar" id="searchInput" onkeyup="searchProducts()">
+    </div>
+
+    <!-- Welcome Text -->
+    <h1 class="welcome-text text-center">Bienvenido a RipStoreSc</h1>
+
+    <!-- Default Content -->
+    <div id="default" class="content-section active">
+        <section>
+            <h2 class="section-title">Para Ti</h2>
+            <div class="product-grid" id="defaultProducts">
+                <!-- Products will be loaded dynamically -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Category Contents -->
+    <template id="category-template">
+        <div class="content-section">
+            <section>
+                <h2 class="section-title">Ofertas</h2>
+                <div class="product-grid category-products">
+                    <!-- Category products will be loaded dynamically -->
+                </div>
+            </section>
+            <section>
+                <h2 class="section-title">Para Ti</h2>
+                <div class="product-grid category-recommendations">
+                    <!-- Recommended products will be loaded dynamically -->
+                </div>
+            </section>
+        </div>
+    </template>
+
+    <script>
+        // Check login status when page loads
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkLoginStatus();
+            await loadProducts();
+            await updateCartCount();
+        });
+
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('check_login.php');
+                const data = await response.json();
+                
+                if (data.logged_in) {
+                    // Update navigation for logged-in user
+                    const authLinks = document.querySelector('.flex.items-center.space-x-6');
+                    authLinks.innerHTML = `
+                        <span class="nav-link">Bienvenido, ${data.user_name}</span>
+                        <a href="cart.html" class="nav-link">Carrito <span id="cartCount" class="bg-black text-white px-2 py-1 rounded-full text-xs ml-1">0</span></a>
+                        <a href="logout.php" class="nav-link">Cerrar Sesión</a>
+                    `;
+
+                    // Add admin link if user is admin
+                    if (data.is_admin) {
+                        authLinks.insertAdjacentHTML('afterbegin', '<a href="admin.html" class="nav-link">Admin</a>');
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking login status:', error);
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                const response = await fetch('get_products.php');
+                const data = await response.json();
+                if (data.success) {
+                    renderProducts(data.products);
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        function renderProducts(products) {
+            const defaultGrid = document.getElementById('defaultProducts');
+            defaultGrid.innerHTML = products
+                .map(product => createProductCard(product))
+                .join('');
+        }
+
+        function createProductCard(product) {
+            return `
+                <div class="product-card" onclick="viewProduct(${product.id})">
+                    <img src="${product.image_url}" alt="${product.name}" class="w-full h-full object-cover rounded-lg">
+                    <div class="p-4">
+                        <h3 class="font-medium">${product.name}</h3>
+                        <p class="text-lg">$${product.price}</p>
+                        ${product.discount > 0 ? `<p class="text-red-500">-${product.discount}% OFF</p>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function showCategory(category, element) {
+            // Reset all nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Activate clicked nav link
+            if (element) {
+                element.classList.add('active');
+            }
+            
+            // Hide all content sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            try {
+                const response = await fetch(`get_category_products.php?category=${category}`);
+                const data = await response.json();
+                if (data.success) {
+                    // Create new category section from template
+                    const template = document.getElementById('category-template');
+                    const clone = template.content.cloneNode(true);
+                    const section = clone.querySelector('.content-section');
+                    section.id = category;
+                    
+                    // Populate products
+                    const offersGrid = section.querySelector('.category-products');
+                    const recommendationsGrid = section.querySelector('.category-recommendations');
+                    
+                    offersGrid.innerHTML = data.offers
+                        .map(product => createProductCard(product))
+                        .join('');
+                    
+                    recommendationsGrid.innerHTML = data.recommendations
+                        .map(product => createProductCard(product))
+                        .join('');
+                    
+                    // Remove old category section if exists
+                    const oldSection = document.getElementById(category);
+                    if (oldSection) {
+                        oldSection.remove();
+                    }
+                    
+                    // Add new section and show it
+                    document.body.appendChild(section);
+                    section.classList.add('active');
+                }
+            } catch (error) {
+                console.error('Error loading category products:', error);
+            }
+        }
+
+        async function updateCartCount() {
+            try {
+                const response = await fetch('get_cart_count.php');
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('cartCount').textContent = data.count;
+                }
+            } catch (error) {
+                console.error('Error updating cart count:', error);
+            }
+        }
+
+        function searchProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const products = document.querySelectorAll('.product-card');
+            
+            products.forEach(product => {
+                const name = product.querySelector('h3').textContent.toLowerCase();
+                if (name.includes(searchTerm)) {
+                    product.style.display = 'block';
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+        }
+
+        function viewProduct(productId) {
+            window.location.href = `product.html?id=${productId}`;
+        }
+    </script>
+</body>
+</html>
