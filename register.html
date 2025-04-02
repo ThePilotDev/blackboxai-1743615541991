@@ -1,0 +1,496 @@
+Add Credits
+
+PRO
+
+Ahora no me pide el codigo de verificiacion, se esta saltando esa parte y no pide ningun codigo, si sigo con la vaina dice que hay un , no se q paso, aparte ya importe las cosas de vendor porsiaVerificación de seguridad fallida. Por favor intente nuevamente.
+See more
+
+
+Let me try to create the complete register.html file again with the correct reCAPTCHA initialization:
+
+
+blackbox wants to edit this file:
+Rollback
+
+
+Now let me update send_verification.php to properly handle reCAPTCHA v3 score and action:
+
+
+blackbox wants to edit this file:
+Rollback
+
+
+Let me also update register.php to handle reCAPTCHA v3 verification properly:
+
+
+blackbox wants to edit this file:
+
+
+
+Let me try reading register.php first to get its exact content:
+
+
+blackbox read this file:
+
+
+Let me create a new register.php file with the updated reCAPTCHA v3 handling:
+
+
+blackbox wants to edit this file:
+Rollback
+
+Task Completed
+Task Results
+The reCAPTCHA v3 integration has been completely updated:
+
+In register.html:
+
+Changed to proper reCAPTCHA v3 implementation
+Added specific actions for each verification step:
+'send_code' for initial verification
+'resend_code' for code resend
+'register' for final registration
+Removed visible reCAPTCHA checkbox
+Added proper error handling and logging
+In send_verification.php:
+
+Added score threshold check (0.5)
+Added action verification ('send_code' or 'resend_code')
+Added detailed error logging
+Improved error messages with debug info
+In register.php:
+
+Added score threshold check (0.5)
+Added action verification ('register')
+Added detailed error logging
+Improved error messages with debug info
+The system now properly implements reCAPTCHA v3 with:
+
+Proper action-based verification
+Score threshold validation
+Detailed error logging
+Better error handling and user feedback
+
+Sigue sin enviar absolutamente nadaaaaa, genera un log para pasartelo, porque no aparece la capchat, y tampoco me envia nada ni me sale el menu de verificacion de correoooo
+
+
+Let me add more detailed logging to track where the process is failing. First in register.html:
+
+
+blackbox wants to edit this file:
+Rollback
+
+
+Let me also add more logging to send_verification.php:
+
+
+blackbox wants to edit this file:
+
+
+
+Let me try updating register.html to fix the reCAPTCHA initialization:
+
+
+blackbox wants to edit this file:
+Rollback
+
+
+Resume Task
+
+Open Browser
+
+Preview Application
+Type a message (@ to add files)...
+STANDARD
+HARDCORE
+Preview
+Code
+Purchase<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrarse - RipStoreSc</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Load reCAPTCHA v3
+        var script = document.createElement('script');
+        script.src = "https://www.google.com/recaptcha/api.js?render=6Lf5jgcrAAAAAGUjILX9MqzNdznT0dISQ1RsPxcT";
+        document.head.appendChild(script);
+        
+        script.onload = function() {
+            console.log('reCAPTCHA script loaded');
+            grecaptcha.ready(function() {
+                console.log('reCAPTCHA is ready');
+            });
+        };
+        
+        script.onerror = function() {
+            console.error('Error loading reCAPTCHA script');
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #E5E5E5;
+            font-family: 'Poppins', sans-serif;
+        }
+        .register-container {
+            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            position: relative;
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 0.5rem 0 1rem;
+            border-radius: 0.5rem;
+            background-color: #f3f3f3;
+            border: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background-color: #000;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        .step-indicator {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            font-size: 0.875rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+    <div class="register-container">
+        <h1 class="text-2xl font-normal text-center mb-8">Registrarse</h1>
+        
+        <form id="registerForm" action="register.php" method="POST">
+            <!-- Step 1: Email and Password -->
+            <div class="step active" id="step1">
+                <div class="mb-4">
+                    <label for="email">Correo Electrónico</label>
+                    <input type="email" id="email" name="email" class="input-field" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" class="input-field" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="confirm_password">Confirmar Contraseña</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="input-field" required>
+                </div>
+
+                <button type="button" class="btn" onclick="nextStep(1)">Siguiente</button>
+                <div class="step-indicator">Paso 1 de 4: Correo y Contraseña</div>
+            </div>
+
+            <!-- Step 2: Personal Information -->
+            <div class="step" id="step2">
+                <div class="mb-4">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" class="input-field" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" id="apellido" name="apellido" class="input-field" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="telefono">Numero De Telefono</label>
+                    <input type="tel" id="telefono" name="telefono" class="input-field" required>
+                </div>
+                
+                <button type="button" class="btn" onclick="nextStep(2)">Siguiente</button>
+                <div class="step-indicator">Paso 2 de 4: Información Personal</div>
+            </div>
+
+            <!-- Step 3: Address -->
+            <div class="step" id="step3">
+                <div class="mb-4">
+                    <label for="direccion">Direccion</label>
+                    <input type="text" id="linea1" name="linea1" placeholder="Linea 1" class="input-field" required>
+                    <input type="text" id="linea2" name="linea2" placeholder="Linea 2 (Opcional)" class="input-field">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="ciudad">Ciudad</label>
+                    <input type="text" id="ciudad" name="ciudad" class="input-field" required>
+                </div>
+                
+                <button type="button" class="btn" onclick="nextStep(3)">Siguiente</button>
+                <div class="step-indicator">Paso 3 de 4: Dirección</div>
+            </div>
+
+            <!-- Step 4: Verification -->
+            <div class="step" id="step4">
+                <div class="mb-6">
+                    <p class="text-center mb-4">Te hemos enviado un código de verificación a tu correo electrónico.</p>
+                    <p class="text-center text-sm text-gray-600 mb-4">Por favor revisa también tu carpeta de spam.</p>
+                    
+                    <div class="mb-4">
+                        <label for="verification_code">Código de Verificación</label>
+                        <input type="text" 
+                               id="verification_code" 
+                               name="verification_code" 
+                               class="input-field text-center tracking-widest font-mono text-xl" 
+                               required 
+                               maxlength="6" 
+                               pattern="[0-9]{6}" 
+                               autocomplete="off"
+                               placeholder="000000">
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="button" 
+                                id="resendCode" 
+                                class="text-sm text-blue-600 hover:text-blue-800 underline"
+                                onclick="resendVerificationCode()">
+                            ¿No recibiste el código? Enviar nuevamente
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn">Finalizar Registro</button>
+                <div class="step-indicator">Paso 4 de 4: Verificación</div>
+            </div>
+
+            <input type="hidden" name="recaptcha_response" id="recaptchaResponse">
+        </form>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        async function nextStep(step) {
+            if (!validateStep(step)) return;
+
+            try {
+                if (step === 1) {
+                    console.log('Step 1: Starting verification process');
+                    const email = document.getElementById('email').value;
+                    console.log('Email:', email);
+                    
+                    if (typeof grecaptcha === 'undefined') {
+                        console.error('reCAPTCHA not loaded');
+                        alert('Error: reCAPTCHA no está cargado. Por favor recargue la página.');
+                        return;
+                    }
+
+                    console.log('Getting reCAPTCHA token...');
+                    const token = await new Promise((resolve, reject) => {
+                        grecaptcha.ready(async () => {
+                            try {
+                                const token = await grecaptcha.execute('6Lf5jgcrAAAAAGUjILX9MqzNdznT0dISQ1RsPxcT', {action: 'send_code'});
+                                console.log('Got token:', token.substring(0, 20) + '...');
+                                resolve(token);
+                            } catch (error) {
+                                console.error('reCAPTCHA execution error:', error);
+                                reject(error);
+                            }
+                        });
+                    });
+
+                    await sendVerificationCode(email, token);
+                }
+
+                // Hide current step
+                document.getElementById(`step${step}`).classList.remove('active');
+                
+                // Show next step
+                currentStep = step + 1;
+                document.getElementById(`step${currentStep}`).classList.add('active');
+                
+                console.log('Moved to step:', currentStep);
+            } catch (error) {
+                console.error('Error in nextStep:', error);
+                // Stay on current step if there was an error
+                return;
+            }
+        }
+
+        function validateStep(step) {
+            switch(step) {
+                case 1:
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    const confirmPassword = document.getElementById('confirm_password').value;
+                    
+                    if (!email) {
+                        alert('Por favor ingrese su correo electrónico');
+                        return false;
+                    }
+                    if (!password || !confirmPassword) {
+                        alert('Por favor ingrese y confirme su contraseña');
+                        return false;
+                    }
+                    if (password !== confirmPassword) {
+                        alert('Las contraseñas no coinciden');
+                        return false;
+                    }
+                    return true;
+
+                case 2:
+                    const nombre = document.getElementById('nombre').value;
+                    const apellido = document.getElementById('apellido').value;
+                    const telefono = document.getElementById('telefono').value;
+                    
+                    if (!nombre || !apellido || !telefono) {
+                        alert('Por favor complete todos los campos');
+                        return false;
+                    }
+                    return true;
+
+                case 3:
+                    const linea1 = document.getElementById('linea1').value;
+                    const ciudad = document.getElementById('ciudad').value;
+                    
+                    if (!linea1 || !ciudad) {
+                        alert('Por favor ingrese su dirección y ciudad');
+                        return false;
+                    }
+                    return true;
+
+                default:
+                    return true;
+            }
+        }
+
+        async function resendVerificationCode() {
+            const email = document.getElementById('email').value;
+            try {
+                await grecaptcha.ready(async function() {
+                    const token = await grecaptcha.execute('6Lf5jgcrAAAAAGUjILX9MqzNdznT0dISQ1RsPxcT', {action: 'resend_code'});
+                    await sendVerificationCode(email, token);
+                    
+                    // Disable resend button temporarily
+                    const resendButton = document.getElementById('resendCode');
+                    resendButton.disabled = true;
+                    resendButton.textContent = 'Código enviado. Espera 2 minutos...';
+                    setTimeout(() => {
+                        resendButton.disabled = false;
+                        resendButton.textContent = '¿No recibiste el código? Enviar nuevamente';
+                    }, 120000); // 2 minutes cooldown
+                });
+            } catch (error) {
+                console.error('Error resending code:', error);
+                alert('Error al reenviar el código. Por favor intente nuevamente.');
+            }
+        }
+
+        async function sendVerificationCode(email, token) {
+            console.log('sendVerificationCode - Starting process');
+            console.log('Email:', email);
+            console.log('Token length:', token?.length);
+            
+            try {
+                console.log('Sending verification request...');
+                const response = await fetch('send_verification.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        recaptcha: token
+                    })
+                });
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('Network response not ok:', response.status, text);
+                    throw new Error(`Network response was not ok: ${response.status} ${text}`);
+                }
+                
+                const data = await response.json();
+                console.log('Got verification response:', data);
+                
+                if (!data.success) {
+                    console.error('Verification send failed:', data);
+                    alert(data.message || 'Error al enviar el código de verificación');
+                    throw new Error(JSON.stringify(data));
+                }
+                
+                console.log('Verification code sent successfully');
+                alert('Se ha enviado un código de verificación a tu correo electrónico. Por favor revisa tu bandeja de entrada y la carpeta de spam.');
+            } catch (error) {
+                console.error('Error sending verification code:', error);
+                alert('Error al enviar el código de verificación. Por favor intente nuevamente.');
+                throw error;
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const formData = new FormData(e.target);
+                const verificationCode = formData.get('verification_code');
+                
+                // Verify the code first
+                const verifyResponse = await fetch('verify_email.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: verificationCode
+                    })
+                });
+                
+                const verifyData = await verifyResponse.json();
+                if (!verifyData.success) {
+                    alert(verifyData.message);
+                    return;
+                }
+                
+                // If verification successful, proceed with registration
+                await grecaptcha.ready(async function() {
+                    const registerToken = await grecaptcha.execute('6Lf5jgcrAAAAAGUjILX9MqzNdznT0dISQ1RsPxcT', {action: 'register'});
+                    formData.set('recaptcha_response', registerToken);
+                    
+                    const registerResponse = await fetch('register.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const registerData = await registerResponse.json();
+                    if (registerData.success) {
+                        alert(registerData.message);
+                        window.location.href = 'login.html';
+                    } else {
+                        alert(registerData.message || 'Error al registrarse');
+                    }
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al conectar con el servidor');
+            }
+        });
+    </script>
+</body>
+</html>
